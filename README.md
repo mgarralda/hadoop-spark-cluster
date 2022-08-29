@@ -1,7 +1,7 @@
-# hadoop-yarn-spark-docker
-This repository contains Docker images for Apache Spark executed on Hadoop YARN
+# hadoop-spark-cluster
+This repository contains Docker images for Apache Spark executed on Hadoop YARN.
 
-Downloaded from https://github.com/bartosz25/spark-docker in order to upgrade versions and use on **Windows 10 Docker**.
+Upgrading project downloaded from https://github.com/bartosz25/spark-docker in order to update versions and use on **Windows 10 Docker**.
 
 Versions: Ubuntu 20.04, Spark v2.4.8 and Hadoop v.2.7.7
 
@@ -12,13 +12,12 @@ The purpose of them is to allow programmers to test Spark applications deployed 
 
 Download and unzip all files inside a folder named "hadoop-spark-cluster".
 
-This version uses `docker-compose` to create master and worker containers (nodes). It's executed with standard `docker-compose up` command and the number of workers is  defined with `--scale slave=X` property.
+This project uses `docker-compose` to create a master and worker containers (nodes). It's executed with standard `docker-compose up` command and the number of workers is  defined with `--scale slave=X` property.
 
 But before calling it, 3 Docker images must be built executing this windows powershell script:
 ```
 build_images.ps1
 ```
-
 Now we can create a cluster with a master and 3 slaves:
 ```
 docker-compose up -d --scale slave=3
@@ -32,7 +31,7 @@ If the cluster exists and you just want to start or stop it:
 docker-compose start
 ``` 
 ```
-docker-compose stopt
+docker-compose stop
 ``` 
 
 # Spark and Hadoop WebUIs
@@ -58,7 +57,6 @@ Shared repositories can be used to, for example, put the JAR executed with spark
 # To get access and run spark-submit commands inside the cluster, type the following in a Windows terminal:
 ```
 docker exec -it hadoop-spark-cluster_master_1 /bin/bash
-cd /share
 ``` 
 
 # Tests
