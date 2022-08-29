@@ -1,7 +1,7 @@
 # hadoop-yarn-spark-docker
 This repository contains Docker images for Apache Spark executed on Hadoop YARN
 
-Downloaded from https://github.com/bartosz25/spark-docker in order to upgrade versions and to use on **Windows 10 Docker**.
+Downloaded from https://github.com/bartosz25/spark-docker in order to upgrade versions and use on **Windows 10 Docker**.
 
 Versions: Ubuntu 20.04, Spark v2.4.8 and Hadoop v.2.7.7
 
@@ -9,6 +9,9 @@ The purpose of them is to allow programmers to test Spark applications deployed 
 **It was not designed to be deployed in production environments**. The project was tested on Ubuntu 20. 
 
 # Building the cluster
+
+Download and unzip all files inside a folder named "hadoop-spark-cluster".
+
 This version uses `docker-compose` to create master and worker containers (nodes). It's executed with standard `docker-compose up` command and the number of workers is  defined with `--scale slave=X` property.
 
 But before calling it, 3 Docker images must be built executing this windows powershell script:
@@ -51,6 +54,12 @@ open_webuis.ps1
 * shared-slave: this repository is shared between slave Docker containers (/home/sparker/shared) and host
 
 Shared repositories can be used to, for example, put the JAR executed with spark-submit inside.
+
+# To get access and run spark-submit commands inside the cluster, type the following in a Windows terminal:
+```
+docker exec -it hadoop-spark-cluster_master_1 /bin/bash
+cd /share
+``` 
 
 # Tests
 To verify that the cluster was correctly installed, launch _SparkPi_ example:
