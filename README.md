@@ -18,7 +18,7 @@ But before calling it, 3 Docker images must be built executing this windows powe
 ```
 build_images.ps1
 ```
-Now we can create a cluster with a master and 3 slaves:
+Now we can create the cluster with a master and 3 slaves:
 ```
 docker-compose up -d --scale slave=3
 ``` 
