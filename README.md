@@ -6,7 +6,7 @@ Upgraded project downloaded from https://github.com/bartosz25/spark-docker in or
 Versions: Ubuntu 20.04, Spark v2.4.8 and Hadoop v.2.7.7
 
 The purpose of them is to allow programmers to test Spark applications deployed on YARN easier. 
-**It was not designed to be deployed in production environments**. The project was tested on Ubuntu 20. 
+**It was not designed to be deployed in production environments**.
 
 # Building the cluster
 
