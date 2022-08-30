@@ -1,4 +1,4 @@
-# hadoop-spark-cluster
+# hadoop-yarn-spark-cluster
 This repository contains Docker images for Apache Spark executed on Hadoop YARN.
 
 Upgrading project downloaded from https://github.com/bartosz25/spark-docker in order to update versions and use on **Windows 10 Docker**.
