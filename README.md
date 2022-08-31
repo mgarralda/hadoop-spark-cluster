@@ -1,9 +1,9 @@
 # hadoop-yarn-spark-docker-cluster
 This repository contains Docker images for Apache Spark executed on Hadoop YARN.
 
-Upgraded project downloaded from https://github.com/bartosz25/spark-docker in order to be feasible with new versions of Spark/Hadoop and use on **Windows 10 Docker**.
+Upgraded project downloaded from https://github.com/bartosz25/spark-docker in order to be feasible with new versions of Spark/Hadoop and whether use on **Windows 10 Docker** or **Linux**.
 
-Versions: Ubuntu 20.04, Spark v2.4.8 and Hadoop v.2.7.7
+Image versions: Ubuntu 20.04, Spark v2.4.8 and Hadoop v.2.7.7
 
 The purpose of them is to allow programmers to test Spark applications deployed on YARN easier. 
 **It was not designed to be deployed in production environments**.
@@ -17,6 +17,12 @@ This project uses `docker-compose` to create a master and worker containers (nod
 But before calling it, 3 Docker images must be built executing this windows powershell script:
 ```
 build_images.ps1
+```
+On Linux:
+```
+make build_base_image
+make build_master_image
+make build_slave_image
 ```
 Now we can create the cluster with a master and 3 slaves:
 ```
@@ -39,10 +45,6 @@ Spark, HDFS and YARN expose web UI used to track the execution of the applicatio
 * http://localhost:8088  - YARN UI's address
 * http://localhost:18080 - Spark history UI's address
 * http://localhost:50070 - Hadoop HDFS NodeManager WebUI
-
-```
-open_webuis.ps1
-``` 
 
 # Repository structure: Volumen linked
 * conf-master: stores master's configuration files are stored there
