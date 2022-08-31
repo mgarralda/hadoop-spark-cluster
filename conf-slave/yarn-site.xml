@@ -26,4 +26,17 @@
     <name>yarn.nodemanager.remote-app-log-dir</name>
     <value>/tmp/logs</value>
   </property>
+  <property>
+    <name>yarn.nodemanager.pmem-check-enabled</name>
+    <value>false</value>
+</property>
+
+<property>
+    <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>false</value>
+</property>
+<property>
+    <name>yarn.nodemanager.vmem-pmem-ratio</name>
+    <value>5</value>
+</property>
 </configuration>
