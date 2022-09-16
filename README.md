@@ -72,5 +72,3 @@ spark-submit --class org.apache.spark.examples.SparkPi --master yarn --deploy-mo
 ## "Unhealthy Node local-dirs and log-dirs"
 I encounter the issue when I had too few available disk space. It makes that the slave nodes are detected as unhealthy. You can fix that either by playing with the configuration 
 https://stackoverflow.com/questions/29131449/why-does-hadoop-report-unhealthy-node-local-dirs-and-log-dirs-are-bad or simply by ensuring that you have enough free disk space.
-## Exception in thread "main" org.apache.hadoop.ipc.RemoteException(org.apache.hadoop.hdfs.server.namenode.SafeModeException): Cannot create directory /user/sparker/."
-hdfs dfsadmin -safemode leave
