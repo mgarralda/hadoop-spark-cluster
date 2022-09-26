@@ -59,7 +59,11 @@ Shared repositories can be used to, for example, put the JAR executed with spark
 # To get access and run spark-submit commands inside the cluster
 Type the following in a terminal:
 ```
-docker exec -it hadoop-spark-cluster_master_1 /bin/bash
+docker exec -it hadoop-spark-cluster-master-1 /bin/bash
+``` 
+If you have problems with docker container names, check it
+```
+docker ps --format '{{.Names}}'
 ``` 
 
 # Tests
@@ -72,3 +76,5 @@ spark-submit --class org.apache.spark.examples.SparkPi --master yarn --deploy-mo
 ## "Unhealthy Node local-dirs and log-dirs"
 I encounter the issue when I had too few available disk space. It makes that the slave nodes are detected as unhealthy. You can fix that either by playing with the configuration 
 https://stackoverflow.com/questions/29131449/why-does-hadoop-report-unhealthy-node-local-dirs-and-log-dirs-are-bad or simply by ensuring that you have enough free disk space.
+
+
