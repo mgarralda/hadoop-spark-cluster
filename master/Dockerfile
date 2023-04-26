@@ -20,7 +20,7 @@ RUN chmod 0600 ~/.ssh/authorized_keys
 
 COPY ./conf-master/core-site.xml ./hadoop-$HADOOP_VERSION/etc/hadoop
 COPY ./conf-master/yarn-site.xml ./hadoop-$HADOOP_VERSION/etc/hadoop
-COPY ./conf-master/spark-defaults.conf ./spark-$SPARK_VERSION-bin-hadoop2.7/conf
+COPY ./conf-master/spark-defaults.conf ./spark-$SPARK_VERSION-bin-hadoop3/conf
 RUN $HADOOP_HOME/bin/hdfs namenode -format
 
  

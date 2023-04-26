@@ -26,8 +26,9 @@ services:
     extra_hosts:
       - "spark-master:172.18.0.20"
     depends_on:
-    -  master
+      -  master
     image: "spark_compose_slave:latest"
+
 networks:
   spark-network:
     driver: bridge
