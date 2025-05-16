@@ -1,0 +1,70 @@
+services:
+  master:
+    ports:
+      # Spark Master (cluster communication)
+      - "127.0.0.1:7077:7077"
+      # Spark Application UI
+      - "127.0.0.1:4040:4040"
+      # Spark History Server
+      - "127.0.0.1:18080:18080"
+
+      # YARN ResourceManager UI
+      - "127.0.0.1:8088:8088"
+
+      # HDFS (NameNode)
+      - "127.0.0.1:9870:9870"
+
+      # MapReduce Job History
+      # JobHistory Web UI
+      - "127.0.0.1:19888:19888"
+
+      # SSH (optional)
+      - "127.0.0.1:22:22"
+    networks:
+      spark-network:
+        ipv4_address: 172.18.0.20
+    hostname: spark-master
+    image: "spark_master:latest"
+    privileged: true
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 4g
+    volumes:
+      - ./shared-master:/home/sparker/shared
+      - hibench-data:/home/sparker/HiBench
+
+  slave:
+    #    ports:
+    #    - "8042:8042"  # NodeManager Web UI
+    #    - "8040:8040"  # NodeManager Localizer (internal, optional)
+    environment:
+      - "script=run_slave.sh"
+    networks:
+      - spark-network
+    image: "spark_slave:latest"
+    privileged: true
+    deploy:
+      resources:
+        limits:
+          cpus: 6
+          memory: 15g
+    depends_on:
+      - master
+    extra_hosts:
+      - "spark-master:172.18.0.20"
+    volumes:
+      - ./shared-slave:/home/sparker/shared
+      - hibench-data:/home/sparker/HiBench
+
+networks:
+  spark-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/16
+
+volumes:
+  hibench-data:

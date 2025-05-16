@@ -1,0 +1,165 @@
+services:
+  master:
+    image: "spark_master:latest"
+    container_name: spark-cluster-master
+    hostname: spark-cluster-master
+    ports:
+      # Spark Master (cluster communication)
+      - "127.0.0.1:7077:7077"
+      # Spark Application UI
+      - "127.0.0.1:4040:4040"
+      - "127.0.0.1:4041:4041"
+      # Spark History Server
+      - "127.0.0.1:18080:18080"
+      # Spark Standalone UI
+      - "127.0.0.1:8080:8080"
+
+      # YARN ResourceManager UI
+      - "127.0.0.1:8088:8088"
+
+      # HDFS (NameNode)
+      - "127.0.0.1:9870:9870"
+
+      # MapReduce Job History
+      # JobHistory Web UI
+      - "127.0.0.1:19888:19888"
+
+      # SSH (optional)
+      - "127.0.0.1:2222:22"
+    networks:
+      spark-network:
+        ipv4_address: 172.18.0.20
+    privileged: true
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 4g
+    volumes:
+      - ./shared-master:/home/sparker/shared
+      - hibench-data:/home/sparker/HiBench
+
+  slave1:
+    image: spark_slave:latest
+    container_name: spark-cluster-slave-1
+    hostname: spark-cluster-slave-1
+    privileged: true
+    environment:
+      - script=run_slave.sh
+      - SPARK_WORKER_CORES=6
+      - SPARK_WORKER_MEMORY=15g
+    networks:
+      spark-network:
+        ipv4_address: 172.18.0.11
+    depends_on:
+      - master
+    extra_hosts:
+      - "spark-cluster-master:172.18.0.20"
+    volumes:
+      - ./shared-slave:/home/sparker/shared
+      - hibench-data:/home/sparker/HiBench
+    deploy:
+      resources:
+        limits:
+          cpus: 6
+          memory: 15g
+
+  slave2:
+    image: spark_slave:latest
+    container_name: spark-cluster-slave-2
+    hostname: spark-cluster-slave-2
+    privileged: true
+    environment:
+      - script=run_slave.sh
+      - SPARK_WORKER_CORES=6
+      - SPARK_WORKER_MEMORY=15g
+    networks:
+      spark-network:
+        ipv4_address: 172.18.0.12
+    depends_on:
+      - master
+    extra_hosts:
+      - "spark-cluster-master:172.18.0.20"
+    volumes:
+      - ./shared-slave:/home/sparker/shared
+      - hibench-data:/home/sparker/HiBench
+    deploy:
+      resources:
+        limits:
+          cpus: 6
+          memory: 15g
+
+  slave3:
+    image: spark_slave:latest
+    container_name: spark-cluster-slave-3
+    hostname: spark-cluster-slave-3
+    privileged: true
+    environment:
+      - script=run_slave.sh
+      - SPARK_WORKER_CORES=6
+      - SPARK_WORKER_MEMORY=15g
+    networks:
+      spark-network:
+        ipv4_address: 172.18.0.13
+    depends_on:
+      - master
+    extra_hosts:
+      - "spark-cluster-master:172.18.0.20"
+    volumes:
+      - ./shared-slave:/home/sparker/shared
+      - hibench-data:/home/sparker/HiBench
+    deploy:
+      resources:
+        limits:
+          cpus: 6
+          memory: 15g
+
+  nginx:
+    image: nginx:latest
+    container_name: spark-cluster-proxy
+    hostname: spark-cluster-proxy
+    ports:
+      # All slave UIs
+      - "8042:8042"
+      # All HDFS DataNodes UIs
+      - "9864:9864"
+      # All Spark standalone workers UIs
+      - "8081:8081"
+    networks:
+      - spark-network
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+  jupyterlab:
+    image: spark_jupyter
+    container_name: spark-cluster-jupyterlab
+    hostname: spark-cluster-jupyterlab
+    environment:
+      - SPARK_MASTER=spark://spark-cluster-master:7077
+      - PYSPARK_PYTHON=/usr/bin/python3.8
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3.8
+      - JUPYTER_ENABLE_LAB=yes
+      - CHOWN_HOME=yes
+      - CHOWN_HOME_OPTS=-R
+    volumes:
+      - ./jupyter:/home/jovyan/work
+    ports:
+      - "127.0.0.1:8888:8888"
+    networks:
+      spark-network:
+        ipv4_address: 172.18.0.21
+    depends_on:
+      - master
+    command: >
+      start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''
+
+
+networks:
+  spark-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
+
+volumes:
+  hibench-data:

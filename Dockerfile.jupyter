@@ -1,0 +1,69 @@
+# ────────────────────────────────────────────────────────────────────────────
+# Base: Spark 3.3.2 + PySpark notebook
+# ────────────────────────────────────────────────────────────────────────────
+#FROM quay.io/jupyter/all-spark-notebook
+FROM jupyter/pyspark-notebook:spark-3.3.2
+
+# ────────────────────────────────────────────────────────────────────────────
+# Part A: Python 3.8 for PySpark
+# ────────────────────────────────────────────────────────────────────────────
+USER root
+
+RUN bash -euo pipefail -c '\
+  mamba create -y -n py38 python=3.8 ipykernel && \
+  ln -s /opt/conda/envs/py38/bin/python /usr/bin/python3.8 && \
+  ln -s /usr/bin/python3.8              /usr/local/bin/python3.8 && \
+  # remove any existing default spec (both locations if present)
+  rm -rf /opt/conda/share/jupyter/kernels/python3 \
+         /usr/local/share/jupyter/kernels/python3 && \
+  # register *our* interpreter under the canonical name "python3"
+  /opt/conda/envs/py38/bin/python -m ipykernel install \
+        --prefix=/opt/conda --name=python3 \
+        --display-name="Python 3.8 (PySpark)" \
+'
+
+ENV PYSPARK_PYTHON=/usr/bin/python3.8 \
+    PYSPARK_DRIVER_PYTHON=/usr/bin/python3.8
+	
+# ────────────────────────────────────────────────────────────────────────────
+# Part B: Java 1.8.0_452 + Coursier CLI
+# ────────────────────────────────────────────────────────────────────────────
+USER root
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends openjdk-8-jdk-headless curl ca-certificates && \
+    rm -rf /var/lib/apt/lists/* && \
+    curl -fL https://github.com/coursier/coursier/releases/download/v2.1.7/cs-x86_64-pc-linux.gz \
+      | gunzip -c > /usr/local/bin/cs && chmod +x /usr/local/bin/cs
+
+# ─── Usuario jovyan: instalar Almond + configurar predef ──────────────────
+USER $NB_UID
+
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+ENV PATH="$JAVA_HOME/bin:/usr/local/bin:$PATH"
+
+# ─── Crear directorio y copiar configuración de Almond (Scala kernel) ─────────
+RUN mkdir -p /home/jovyan/.ammonite
+COPY ./scripts/predef.sc /home/jovyan/.ammonite/predef.sc
+
+# ─── Copiar configuración global de logs para Spark (Log4j) ──────────────────
+COPY ./scripts/log4j.properties /usr/local/spark/conf/log4j.properties
+
+# ─── Forzar Spark a usar log4j.properties sin modificar SparkSession.builder ─
+ENV SPARK_SUBMIT_OPTS="-Dlog4j.configuration=file:/usr/local/spark/conf/log4j.properties"
+
+# ─── Instalar kernel Almond Scala 2.12.15 ─────────────────────────────────────
+RUN cs launch --fork almond \
+    --scala 2.12.15 \
+    -- \
+    --install \
+    --id scala_2.12 \
+    --display-name "Scala 2.12 (Spark)" \
+    --predef /home/jovyan/.ammonite/predef.sc
+
+# ─── Pre-resolver spark-sql 3.3.2 en tiempo de build ─────────────────────────
+RUN cs launch almond \
+    --scala 2.12.15 \
+    -- \
+    --predef-code "import $$ivy.`org.apache.spark::spark-sql:3.3.2`" \
+    --connection-file /dev/null || true

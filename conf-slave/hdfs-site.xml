@@ -1,0 +1,34 @@
+<configuration>
+
+  <property>
+    <name>dfs.namenode.http-address</name>
+    <value>0.0.0.0:9870</value>
+  </property>
+
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>/home/sparker/hadoop_data/hdfs/datanode</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>/home/sparker/hadoop_data/hdfs/namenode</value>
+  </property>
+
+  <property>
+    <name>dfs.replication</name>
+    <value>1</value> <!-- Use 2+ if you have multiple slaves -->
+  </property>
+
+  <property>
+    <name>dfs.blocksize</name>
+    <value>134217728</value> <!-- e.g., change to 1MB: 1048576, 128MB: 134217728: -->
+  </property>
+
+  <property>
+    <name>dfs.datanode.du.reserved</name>
+    <value>64424509440</value> <!-- 60 GB in bytes -->
+    <description>Amount of space to reserve on the DataNode for non-HDFS use.</description>
+  </property>
+
+</configuration>
