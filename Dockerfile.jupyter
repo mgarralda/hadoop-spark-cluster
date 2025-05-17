@@ -10,7 +10,19 @@ FROM jupyter/pyspark-notebook:spark-3.3.2
 USER root
 
 RUN bash -euo pipefail -c '\
-  mamba create -y -n py38 python=3.8 ipykernel && \
+  mamba create -y -n py38 python=3.8 \
+    ipykernel \
+    numpy \
+    pandas \
+    scipy \
+    scikit-learn \
+    pyarrow \
+    matplotlib \
+    seaborn \
+    joblib \
+    tqdm \
+    tabulate \
+    jupyterlab && \
   ln -s /opt/conda/envs/py38/bin/python /usr/bin/python3.8 && \
   ln -s /usr/bin/python3.8              /usr/local/bin/python3.8 && \
   # remove any existing default spec (both locations if present)
@@ -24,7 +36,7 @@ RUN bash -euo pipefail -c '\
 
 ENV PYSPARK_PYTHON=/usr/bin/python3.8 \
     PYSPARK_DRIVER_PYTHON=/usr/bin/python3.8
-	
+
 # ────────────────────────────────────────────────────────────────────────────
 # Part B: Java 1.8.0_452 + Coursier CLI
 # ────────────────────────────────────────────────────────────────────────────
@@ -39,18 +51,25 @@ RUN apt-get update && \
 # ─── Usuario jovyan: instalar Almond + configurar predef ──────────────────
 USER $NB_UID
 
+# Define environment paths
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 ENV PATH="$JAVA_HOME/bin:/usr/local/bin:$PATH"
+ENV SPARK_HOME=/usr/local/spark
+ENV SPARK_CONF_DIR=$SPARK_HOME/conf
+
+# ─── Forzar Spark a usar log4j.properties sin modificar SparkSession.builder ─
+COPY ./scripts/log4j2.properties /usr/local/spark/conf/log4j2.properties
+
+# Used by Spark when launching JVM (driver and executors)
+ENV SPARK_SUBMIT_OPTS="-Dlog4j.configurationFile=/usr/local/spark/conf/log4j2.properties"
+
+# Used by PySpark (interactive shell, notebooks)
+ENV PYSPARK_SUBMIT_ARGS="--conf spark.driver.extraJavaOptions=-Dlog4j.configurationFile=/usr/local/spark/conf/log4j2.properties --conf spark.executor.extraJavaOptions=-Dlog4j.configurationFile=/usr/local/spark/conf/log4j2.properties pyspark-shell"
+
 
 # ─── Crear directorio y copiar configuración de Almond (Scala kernel) ─────────
 RUN mkdir -p /home/jovyan/.ammonite
 COPY ./scripts/predef.sc /home/jovyan/.ammonite/predef.sc
-
-# ─── Copiar configuración global de logs para Spark (Log4j) ──────────────────
-COPY ./scripts/log4j.properties /usr/local/spark/conf/log4j.properties
-
-# ─── Forzar Spark a usar log4j.properties sin modificar SparkSession.builder ─
-ENV SPARK_SUBMIT_OPTS="-Dlog4j.configuration=file:/usr/local/spark/conf/log4j.properties"
 
 # ─── Instalar kernel Almond Scala 2.12.15 ─────────────────────────────────────
 RUN cs launch --fork almond \
@@ -60,10 +79,3 @@ RUN cs launch --fork almond \
     --id scala_2.12 \
     --display-name "Scala 2.12 (Spark)" \
     --predef /home/jovyan/.ammonite/predef.sc
-
-# ─── Pre-resolver spark-sql 3.3.2 en tiempo de build ─────────────────────────
-RUN cs launch almond \
-    --scala 2.12.15 \
-    -- \
-    --predef-code "import $$ivy.`org.apache.spark::spark-sql:3.3.2`" \
-    --connection-file /dev/null || true
