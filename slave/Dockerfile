@@ -19,6 +19,7 @@ COPY ./conf-slave/core-site.xml /home/sparker/hadoop-$HADOOP_VERSION/etc/hadoop/
 COPY ./conf-slave/yarn-site.xml /home/sparker/hadoop-$HADOOP_VERSION/etc/hadoop/
 COPY ./conf-slave/mapred-site.xml /home/sparker/hadoop-$HADOOP_VERSION/etc/hadoop/
 COPY ./conf-slave/hdfs-site.xml /home/sparker/hadoop-$HADOOP_VERSION/etc/hadoop/
+COPY ./conf-slave/spark-defaults.conf /home/sparker/spark-$SPARK_VERSION-bin-hadoop3/conf/
 
 # Switch back to user sparker
 USER sparker

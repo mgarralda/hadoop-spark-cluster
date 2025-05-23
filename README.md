@@ -180,6 +180,16 @@ Consistent resource settings across Docker, YARN, and Spark prevent resource ove
 
 ---
 
+## 🔐 SSH Access
+
+You can connect to the master container via SSH:
+
+```bash
+ssh sparker@spark-cluster-master -p 2222
+```
+> Password: `sparker`
+---
+
 ## 📂 Project Structure
 
 Volume mappings and folder descriptions:

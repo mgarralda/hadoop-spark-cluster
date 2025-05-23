@@ -22,11 +22,14 @@ RUN apt-get install -y less vim ssh openssh-server openssh-client rsync sudo wge
 RUN mkdir -p /var/run/sshd && \
     echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
     echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config && \
+    echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config && \
     echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config && \
     echo "UserKnownHostsFile /dev/null" >> /etc/ssh/ssh_config
 
-# Create user sparker with sudo
+# Create user sparker, set password, and configure sudo
 RUN useradd -ms /bin/bash sparker && \
+    echo "sparker:sparker" | chpasswd && \
+    echo "root:sparker" | chpasswd && \
     echo "sparker ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 USER sparker
@@ -77,3 +80,4 @@ EXPOSE 10020 19888
 EXPOSE 7077 4040 18080
 # HDFS NameNode (UI + RPC)
 EXPOSE 9870 9000
+
