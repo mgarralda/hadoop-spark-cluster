@@ -13,7 +13,7 @@ on Hadoop YARN or in standalone mode. .
 - **Spark**: v3.3.2 Scala v2.12 and  Python (pyspark) v3.8
 - **Hadoop**: v3.3.2
 
-⚠️ While this setup aims to approximate a realistic production cluster, it is recommended for **development and testing purposes**.
+⚠️ While this setup aims to approximate a realistic production cluster, it is recommended for **development and experimental purposes**.
 
 ---
 
