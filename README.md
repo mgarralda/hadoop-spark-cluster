@@ -235,3 +235,19 @@ This cluster is ready to use with our modernized [HiBench](https://github.com/mg
 ##  ♻️ Updated Version
 
 This version is a heavily improved fork of [bartosz25/spark-docker](https://github.com/bartosz25/spark-docker).
+
+---
+
+## 📖 Citation and Academic Use
+
+If this repository, infrastructure, or derived configurations are used in research, technical documentation, benchmarking studies, or industrial reports, please cite the associated doctoral thesis.
+
+```bibtex
+@phdthesis{garralda2026selftuning,
+  author    = {Mariano Garralda Barrio},
+  title     = {AI-Driven Optimization in Distributed Computing Systems: A Self-Tuning Framework},
+  school    = {University of Coruña},
+  year      = {2026},
+  type      = {Doctoral Thesis},
+  url       = {https://hdl.handle.net/2183/48114}
+}
