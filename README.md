@@ -229,7 +229,7 @@ spark-submit   --class org.apache.spark.examples.SparkPi   --master yarn   --dep
 
 ## 🧪 Spark benchmarking with HiBench
 
-This cluster is ready to use with our customized [HiBench](https://github.com/mgarralda/HiBench) for performance benchmarking of Spark applications, with optional MapReduce-based data generation.
+This cluster is ready to use with our modernized [HiBench](https://github.com/mgarralda/HiBench) for performance benchmarking of Spark applications, with optional MapReduce-based data generation.
 
 ---
 ##  ♻️ Updated Version
