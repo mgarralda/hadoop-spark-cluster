@@ -3,6 +3,13 @@ services:
     image: "spark_master:latest"
     container_name: spark-cluster-master
     hostname: spark-cluster-master
+    healthcheck:
+      test: ["CMD", "bash", "-c", "jps -l | grep -q org.apache.spark.deploy.history.HistoryServer && hdfs dfs -test -d /shared/spark-logs"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 180s
+    stop_grace_period: 30s
     ports:
       # Spark Master (cluster communication)
       - "127.0.0.1:7077:7077"
@@ -29,13 +36,13 @@ services:
     networks:
       spark-network:
         ipv4_address: 172.18.0.20
-    privileged: true
     deploy:
       resources:
         limits:
           cpus: 1
           memory: 4g
     volumes:
+      - namenode-data:/home/sparker/hadoop_data/hdfs/namenode
       - ./shared-master:/home/sparker/shared
       - hibench-data:/home/sparker/HiBench
 
@@ -43,11 +50,16 @@ services:
     image: spark_slave:latest
     container_name: spark-cluster-slave-1
     hostname: spark-cluster-slave-1
-    privileged: true
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "bash", "-c", "jps -l | grep -q org.apache.spark.deploy.worker.Worker && jps -l | grep -q org.apache.hadoop.yarn.server.nodemanager.NodeManager && jps -l | grep -q org.apache.hadoop.hdfs.server.datanode.DataNode"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 60s
     environment:
-      - script=run_slave.sh
       - SPARK_WORKER_CORES=6
-      - SPARK_WORKER_MEMORY=15g
+      - SPARK_WORKER_MEMORY=3g
     networks:
       spark-network:
         ipv4_address: 172.18.0.11
@@ -56,23 +68,29 @@ services:
     extra_hosts:
       - "spark-cluster-master:172.18.0.20"
     volumes:
+      - datanode-1-data:/home/sparker/hadoop_data/hdfs/datanode
       - ./shared-slave:/home/sparker/shared
       - hibench-data:/home/sparker/HiBench
     deploy:
       resources:
         limits:
           cpus: 6
-          memory: 15g
+          memory: 6g
 
   slave2:
     image: spark_slave:latest
     container_name: spark-cluster-slave-2
     hostname: spark-cluster-slave-2
-    privileged: true
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "bash", "-c", "jps -l | grep -q org.apache.spark.deploy.worker.Worker && jps -l | grep -q org.apache.hadoop.yarn.server.nodemanager.NodeManager && jps -l | grep -q org.apache.hadoop.hdfs.server.datanode.DataNode"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 60s
     environment:
-      - script=run_slave.sh
       - SPARK_WORKER_CORES=6
-      - SPARK_WORKER_MEMORY=15g
+      - SPARK_WORKER_MEMORY=3g
     networks:
       spark-network:
         ipv4_address: 172.18.0.12
@@ -81,23 +99,29 @@ services:
     extra_hosts:
       - "spark-cluster-master:172.18.0.20"
     volumes:
+      - datanode-2-data:/home/sparker/hadoop_data/hdfs/datanode
       - ./shared-slave:/home/sparker/shared
       - hibench-data:/home/sparker/HiBench
     deploy:
       resources:
         limits:
           cpus: 6
-          memory: 15g
+          memory: 6g
 
   slave3:
     image: spark_slave:latest
     container_name: spark-cluster-slave-3
     hostname: spark-cluster-slave-3
-    privileged: true
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "bash", "-c", "jps -l | grep -q org.apache.spark.deploy.worker.Worker && jps -l | grep -q org.apache.hadoop.yarn.server.nodemanager.NodeManager && jps -l | grep -q org.apache.hadoop.hdfs.server.datanode.DataNode"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 60s
     environment:
-      - script=run_slave.sh
       - SPARK_WORKER_CORES=6
-      - SPARK_WORKER_MEMORY=15g
+      - SPARK_WORKER_MEMORY=3g
     networks:
       spark-network:
         ipv4_address: 172.18.0.13
@@ -106,13 +130,14 @@ services:
     extra_hosts:
       - "spark-cluster-master:172.18.0.20"
     volumes:
+      - datanode-3-data:/home/sparker/hadoop_data/hdfs/datanode
       - ./shared-slave:/home/sparker/shared
       - hibench-data:/home/sparker/HiBench
     deploy:
       resources:
         limits:
           cpus: 6
-          memory: 15g
+          memory: 6g
 
   nginx:
     image: nginx:latest
@@ -120,11 +145,11 @@ services:
     hostname: spark-cluster-proxy
     ports:
       # All slave UIs
-      - "8042:8042"
+      - "127.0.0.1:8042:8042"
       # All HDFS DataNodes UIs
-      - "9864:9864"
+      - "127.0.0.1:9864:9864"
       # All Spark standalone workers UIs
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     networks:
       - spark-network
     volumes:
@@ -134,24 +159,24 @@ services:
     image: spark_jupyter
     container_name: spark-cluster-jupyterlab
     hostname: spark-cluster-jupyterlab
+    mem_limit: 4g
+    cpus: 2
     environment:
       - SPARK_MASTER=spark://spark-cluster-master:7077
-      - PYSPARK_PYTHON=/usr/bin/python3.8
-      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3.8
-      - JUPYTER_ENABLE_LAB=yes
-      - CHOWN_HOME=yes
-      - CHOWN_HOME_OPTS=-R
+      - PYSPARK_PYTHON=/opt/pyspark/bin/python
+      - PYSPARK_DRIVER_PYTHON=/opt/notebook/bin/python
     volumes:
       - ./jupyter:/home/jovyan/work
     ports:
       - "127.0.0.1:8888:8888"
+      - "127.0.0.1:4042:4040"
+      - "127.0.0.1:4043:4041"
     networks:
       spark-network:
         ipv4_address: 172.18.0.21
     depends_on:
-      - master
-    command: >
-      start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''
+      master:
+        condition: service_healthy
 
 
 networks:
@@ -163,3 +188,7 @@ networks:
 
 volumes:
   hibench-data:
+  namenode-data:
+  datanode-1-data:
+  datanode-2-data:
+  datanode-3-data:

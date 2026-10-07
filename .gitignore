@@ -2,3 +2,5 @@ docs/
 *.iml
 .idea/
 .ipynb_checkpoints/
+.validation/
+**/__pycache__/

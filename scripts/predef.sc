@@ -2,13 +2,36 @@
 // Force JVM to use custom Log4j2 configuration
 // =============================================================================
 System.setProperty("log4j.configurationFile", "/usr/local/spark/conf/log4j2.properties")
+System.setProperty("io.netty.tryReflectionSetAccessible", "true")
+
+// Almond starts its JVM directly, so spark-submit does not load these defaults.
+// Add Hadoop XML resources to the interpreter classpath for HDFS and YARN.
+interp.load.cp(os.Path(sys.env("HADOOP_CONF_DIR")))
+locally {
+  val sparkDefaultsSource = scala.io.Source.fromFile(
+    sys.env("SPARK_HOME") + "/conf/spark-defaults.conf"
+  )
+  try {
+    sparkDefaultsSource.getLines().map(_.trim)
+      .filter(line => line.nonEmpty && !line.startsWith("#"))
+      .foreach { line =>
+        val entry = line.split("\\s+", 2)
+        require(entry.length == 2 && entry(0).startsWith("spark."),
+          "Invalid Spark default: " + line)
+        if (System.getProperty(entry(0)) == null)
+          System.setProperty(entry(0), entry(1))
+      }
+  } finally {
+    sparkDefaultsSource.close()
+  }
+}
 
 // =============================================================================
 // Spark Core + ML Libraries
 // =============================================================================
-import $ivy.`org.apache.spark::spark-sql:3.3.2`
-import $ivy.`org.apache.spark::spark-mllib:3.3.2`
-import $ivy.`org.apache.spark::spark-graphx:3.3.2`
+import $ivy.`org.apache.spark::spark-sql:3.5.9`
+import $ivy.`org.apache.spark::spark-mllib:3.5.9`
+import $ivy.`org.apache.spark::spark-graphx:3.5.9`
 
 // =============================================================================
 // Data I/O and Plotting
@@ -24,18 +47,4 @@ import $ivy.`org.typelevel::cats-core:2.9.0`
 
 
 // =============================================================================
-// Optional (still valid if using log4j 1.x)
-// =============================================================================
-import org.apache.log4j.{Level, Logger}
-
-Logger.getLogger("org").setLevel(Level.ERROR)
-Logger.getLogger("org.apache").setLevel(Level.ERROR)
-Logger.getLogger("org.apache.spark").setLevel(Level.ERROR)
-Logger.getLogger("org.apache.spark.scheduler").setLevel(Level.ERROR)
-Logger.getLogger("org.apache.spark.storage").setLevel(Level.ERROR)
-Logger.getLogger("org.apache.spark.sql.execution").setLevel(Level.ERROR)
-Logger.getLogger("org.apache.spark.ui").setLevel(Level.ERROR)
-Logger.getLogger("org.apache.spark.deploy").setLevel(Level.ERROR)
-Logger.getLogger("org.apache.spark.repl.Main").setLevel(Level.ERROR)
-Logger.getLogger("org.spark_project.jetty").setLevel(Level.OFF)
-Logger.getRootLogger.setLevel(Level.ERROR)
+// Log levels are managed by SPARK_HOME/conf/log4j2.properties.

@@ -6,7 +6,7 @@ USER root
 
 # Ensure the run script is copied and has execution permission
 COPY ./scripts/run_master.sh /home/sparker/run.sh
-RUN chmod +x /home/sparker/run.sh
+RUN sed -i 's/\r$//' /home/sparker/run.sh && chmod +x /home/sparker/run.sh
 
 # Set sudo access for sparker (already in base, but kept for clarity)
 RUN echo "sparker ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
@@ -25,8 +25,5 @@ COPY ./conf-master/spark-defaults.conf /home/sparker/spark-$SPARK_VERSION-bin-ha
 USER sparker
 WORKDIR /home/sparker
 
-# Format HDFS only in the master (not needed in slaves)
-RUN $HADOOP_HOME/bin/hdfs namenode -format
-
 # Entrypoint to launch SSH and Spark services
-ENTRYPOINT ["./run.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "./run.sh"]

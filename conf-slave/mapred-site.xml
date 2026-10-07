@@ -26,17 +26,17 @@
 
   <property>
     <name>yarn.app.mapreduce.am.env</name>
-    <value>HADOOP_MAPRED_HOME=/home/sparker/hadoop-3.3.2</value>
+    <value>HADOOP_MAPRED_HOME=/home/sparker/hadoop-3.3.6</value>
   </property>
 
   <property>
     <name>mapreduce.map.env</name>
-    <value>HADOOP_MAPRED_HOME=/home/sparker/hadoop-3.3.2</value>
+    <value>HADOOP_MAPRED_HOME=/home/sparker/hadoop-3.3.6</value>
   </property>
 
   <property>
     <name>mapreduce.reduce.env</name>
-    <value>HADOOP_MAPRED_HOME=/home/sparker/hadoop-3.3.2</value>
+    <value>HADOOP_MAPRED_HOME=/home/sparker/hadoop-3.3.6</value>
   </property>
 
 </configuration>

@@ -1,0 +1,10 @@
+.git
+.idea
+*.iml
+**/.ipynb_checkpoints
+**/__pycache__
+spark-event-logs
+shared-master
+shared-slave
+docker-compose.yml.bck
+.validation

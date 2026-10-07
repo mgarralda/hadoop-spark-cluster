@@ -1,0 +1,4 @@
+# Python libraries needed when a UDF or ML task executes on a worker.
+numpy==1.26.4
+pandas==2.2.3
+pyarrow==12.0.1

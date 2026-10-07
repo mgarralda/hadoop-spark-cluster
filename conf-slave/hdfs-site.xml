@@ -27,7 +27,7 @@
 
   <property>
     <name>dfs.datanode.du.reserved</name>
-    <value>64424509440</value> <!-- 60 GB in bytes -->
+    <value>5368709120</value> <!-- 5 GiB in bytes; adjust for the Docker disk -->
     <description>Amount of space to reserve on the DataNode for non-HDFS use.</description>
   </property>
 

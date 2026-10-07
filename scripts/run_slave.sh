@@ -1,30 +1,32 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "Initializing SSH"
 sudo service ssh start
+cleanup() {
+    trap - TERM INT EXIT
+    "$SPARK_HOME/sbin/stop-worker.sh" || true
+    yarn --daemon stop nodemanager || true
+    hdfs --daemon stop datanode || true
+}
+trap cleanup EXIT
+trap 'exit 0' TERM INT
 
-echo "Starting HDFS DataNode..."
-$HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
+hdfs --daemon start datanode
+yarn --daemon start nodemanager
+"$SPARK_HOME/sbin/start-worker.sh" \
+    --host "$(hostname)" -p 7177 \
+    --cores "${SPARK_WORKER_CORES:-6}" \
+    --memory "${SPARK_WORKER_MEMORY:-3g}" \
+    spark://spark-cluster-master:7077
 
-echo "Starting YARN NodeManager..."
-$HADOOP_HOME/sbin/yarn-daemon.sh start nodemanager
-
-echo "Starting Spark Worker to standalone spark cluster.."
-#$SPARK_HOME/sbin/start-worker.sh -p 7177 -c 1 -m 1G spark://spark-cluster-master:7077
-#$SPARK_HOME/sbin/start-worker.sh --host $(hostname) -p 7177 -c 1 -m 1G spark://spark-cluster-master:7077
-
-# fallback values if none provided
-CORES="${SPARK_WORKER_CORES:-1}"
-MEM="${SPARK_WORKER_MEMORY:-1g}"
-
-echo "Starting Spark Worker on $(hostname) with $CORES cores and $MEM memory"
-$SPARK_HOME/sbin/start-worker.sh \
-  --host "$(hostname)" \
-  -p 7177 \
-  --cores "$CORES" \
-  --memory "$MEM" \
-  spark://spark-cluster-master:7077
-
-
-# Keep the container alive
-tail -f /dev/null
+while true; do
+    processes=$(jps -l)
+    for daemon in DataNode NodeManager org.apache.spark.deploy.worker.Worker; do
+        if ! grep -Eq "[. ]${daemon}$" <<< "$processes"; then
+            echo "Required daemon stopped: $daemon" >&2
+            exit 1
+        fi
+    done
+    sleep 10 &
+    wait $!
+done

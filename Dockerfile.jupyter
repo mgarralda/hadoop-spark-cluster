@@ -1,81 +1,35 @@
-# ────────────────────────────────────────────────────────────────────────────
-# Base: Spark 3.3.2 + PySpark notebook
-# ────────────────────────────────────────────────────────────────────────────
-#FROM quay.io/jupyter/all-spark-notebook
-FROM jupyter/pyspark-notebook:spark-3.3.2
+FROM hadoop_spark_base_image:latest
 
-# ────────────────────────────────────────────────────────────────────────────
-# Part A: Python 3.8 for PySpark
-# ────────────────────────────────────────────────────────────────────────────
 USER root
+RUN useradd -m -u 1001 -s /bin/bash jovyan && \
+    chmod o+x /home/sparker && \
+    python3 -m venv /opt/notebook && \
+    /opt/notebook/bin/pip install --no-cache-dir pip==24.3.1
+COPY requirements-notebook.txt /tmp/requirements-notebook.txt
+RUN /opt/notebook/bin/pip install --no-cache-dir -r /tmp/requirements-notebook.txt && \
+    /opt/notebook/bin/pip check && \
+    /opt/notebook/bin/python -m ipykernel install --prefix=/opt/notebook \
+      --name python3 --display-name 'Python 3.10 (Spark 3.5.9)'
+RUN curl -fL https://github.com/coursier/coursier/releases/download/v2.1.7/cs-x86_64-pc-linux.gz \
+    -o /tmp/cs.gz && gzip -d /tmp/cs.gz && \
+    install -m 755 /tmp/cs /usr/local/bin/cs && rm /tmp/cs
 
-RUN bash -euo pipefail -c '\
-  mamba create -y -n py38 python=3.8 \
-    ipykernel \
-    numpy \
-    pandas \
-    scipy \
-    scikit-learn \
-    pyarrow \
-    matplotlib \
-    seaborn \
-    joblib \
-    tqdm \
-    tabulate \
-    jupyterlab && \
-  ln -s /opt/conda/envs/py38/bin/python /usr/bin/python3.8 && \
-  ln -s /usr/bin/python3.8              /usr/local/bin/python3.8 && \
-  # remove any existing default spec (both locations if present)
-  rm -rf /opt/conda/share/jupyter/kernels/python3 \
-         /usr/local/share/jupyter/kernels/python3 && \
-  # register *our* interpreter under the canonical name "python3"
-  /opt/conda/envs/py38/bin/python -m ipykernel install \
-        --prefix=/opt/conda --name=python3 \
-        --display-name="Python 3.8 (PySpark)" \
-'
+# Use PySpark bundled with SPARK_HOME, not a separately resolved pip version.
+ENV PATH=/opt/notebook/bin:${PATH}
+ENV PYTHONPATH=${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-0.10.9.7-src.zip
+# Executors use the system interpreter, available in every image.
+ENV PYSPARK_PYTHON=/opt/pyspark/bin/python
+ENV PYSPARK_DRIVER_PYTHON=/opt/notebook/bin/python
+COPY conf-master/ ${HADOOP_CONF_DIR}/
+COPY conf-master/spark-defaults.conf /usr/local/spark/conf/spark-defaults.conf
+COPY --chown=jovyan:jovyan scripts/predef.sc /home/jovyan/.ammonite/predef.sc
+COPY scripts/run_jupyter.sh /usr/local/bin/run-jupyter
+RUN sed -i 's/\r$//' /usr/local/bin/run-jupyter && chmod +x /usr/local/bin/run-jupyter
 
-ENV PYSPARK_PYTHON=/usr/bin/python3.8 \
-    PYSPARK_DRIVER_PYTHON=/usr/bin/python3.8
-
-# ────────────────────────────────────────────────────────────────────────────
-# Part B: Java 1.8.0_452 + Coursier CLI
-# ────────────────────────────────────────────────────────────────────────────
-USER root
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends openjdk-8-jdk-headless curl ca-certificates && \
-    rm -rf /var/lib/apt/lists/* && \
-    curl -fL https://github.com/coursier/coursier/releases/download/v2.1.7/cs-x86_64-pc-linux.gz \
-      | gunzip -c > /usr/local/bin/cs && chmod +x /usr/local/bin/cs
-
-# ─── Usuario jovyan: instalar Almond + configurar predef ──────────────────
-USER $NB_UID
-
-# Define environment paths
-ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-ENV PATH="$JAVA_HOME/bin:/usr/local/bin:$PATH"
-ENV SPARK_HOME=/usr/local/spark
-ENV SPARK_CONF_DIR=$SPARK_HOME/conf
-
-# ─── Forzar Spark a usar log4j.properties sin modificar SparkSession.builder ─
-COPY ./scripts/log4j2.properties /usr/local/spark/conf/log4j2.properties
-
-# Used by Spark when launching JVM (driver and executors)
-ENV SPARK_SUBMIT_OPTS="-Dlog4j.configurationFile=/usr/local/spark/conf/log4j2.properties"
-
-# Used by PySpark (interactive shell, notebooks)
-ENV PYSPARK_SUBMIT_ARGS="--conf spark.driver.extraJavaOptions=-Dlog4j.configurationFile=/usr/local/spark/conf/log4j2.properties --conf spark.executor.extraJavaOptions=-Dlog4j.configurationFile=/usr/local/spark/conf/log4j2.properties pyspark-shell"
-
-
-# ─── Crear directorio y copiar configuración de Almond (Scala kernel) ─────────
-RUN mkdir -p /home/jovyan/.ammonite
-COPY ./scripts/predef.sc /home/jovyan/.ammonite/predef.sc
-
-# ─── Instalar kernel Almond Scala 2.12.15 ─────────────────────────────────────
-RUN cs launch --fork almond \
-    --scala 2.12.15 \
-    -- \
-    --install \
-    --id scala_2.12 \
-    --display-name "Scala 2.12 (Spark)" \
+USER jovyan
+WORKDIR /home/jovyan/work
+RUN cs launch --fork almond:0.14.1 --scala 2.12.18 -- \
+    --install --id scala_2.12 --display-name 'Scala 2.12 (Spark 3.5.9)' \
     --predef /home/jovyan/.ammonite/predef.sc
+EXPOSE 8888 4040 4041
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/run-jupyter"]

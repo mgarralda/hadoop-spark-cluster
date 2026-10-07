@@ -6,7 +6,7 @@ USER root
 
 # Copy and prepare the slave start script
 COPY ./scripts/run_slave.sh /home/sparker/run.sh
-RUN chmod +x /home/sparker/run.sh
+RUN sed -i 's/\r$//' /home/sparker/run.sh && chmod +x /home/sparker/run.sh
 
 # Confirm sparker has sudo privileges
 RUN echo "sparker ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
@@ -26,4 +26,4 @@ USER sparker
 WORKDIR /home/sparker
 
 # Entrypoint to launch SSH and Spark services
-ENTRYPOINT ["./run.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "./run.sh"]
