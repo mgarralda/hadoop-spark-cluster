@@ -1,8 +1,8 @@
-# Spark & Hadoop Research Lab
+# Apache Spark 3.5.9 & Hadoop 3.3.6 Docker Cluster — Research & Benchmarking Lab
 
 A **reproducible reference environment for Apache Spark experimentation and benchmarking**, running a multi-node Spark and Hadoop stack in Docker.
 
-The lab provides **Spark Standalone, YARN, HDFS, JupyterLab, Spark History Server and MapReduce Job History Server** in a version-pinned environment, without requiring Spark, Hadoop or Java to be installed directly on the host.
+The lab provides **Spark Cluster, YARN, HDFS, JupyterLab, Spark History Server and MapReduce Job History Server** in a version-pinned environment, without requiring Spark, Hadoop or Java to be installed directly on the host.
 
 It is designed for **research, learning, controlled experimentation and benchmark validation**. The default topology runs one master and three workers as separate containers, allowing you to execute distributed jobs, inspect scheduling and executor behavior, store datasets in HDFS, and revisit completed applications through execution-history services.
 
