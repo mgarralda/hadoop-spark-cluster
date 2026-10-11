@@ -7,10 +7,9 @@ authors:
     given-names: Mariano
     affiliation: Independent Researcher
 version: "4.2.0"
+doi: "10.5281/zenodo.23305481"
 repository-code: "https://github.com/mgarralda/hadoop-spark-cluster"
 url: "https://github.com/mgarralda/hadoop-spark-cluster"
-# Add the Zenodo DOI for this specific software version when available.
-# Keep the software version DOI distinct from Zenodo's concept DOI.
 keywords:
   - Apache Spark
   - Apache Hadoop

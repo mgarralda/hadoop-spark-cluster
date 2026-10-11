@@ -464,9 +464,9 @@ It is deliberately kept independent from any particular optimizer or benchmarkin
 
 If you use this environment in your research, please cite the **software version used in your experiments**. Machine-readable metadata is available in [CITATION.cff](CITATION.cff), which GitHub uses for its **Cite this repository** feature.
 
-Version **4.2.0** is being prepared for archival in Zenodo. Its version-specific DOI will be added here and to `CITATION.cff` when available. For reproducibility, use the DOI of the exact release rather than Zenodo's concept DOI, which represents all versions.
+Zenodo DOI for version **4.2.0**: [10.5281/zenodo.23305481](https://doi.org/10.5281/zenodo.23305481).
 
-Until the Zenodo DOI is available, the software can be cited as:
+The software can be cited as:
 
 ```bibtex
 @software{garralda2026sparkhadoopcluster,
@@ -474,7 +474,8 @@ Until the Zenodo DOI is available, the software can be cited as:
   title   = {Apache Spark \& Hadoop Docker Cluster: Research \& Benchmarking Lab},
   version = {4.2.0},
   year    = {2026},
-  url     = {https://github.com/mgarralda/hadoop-spark-cluster}
+  doi     = {10.5281/zenodo.23305481},
+  url     = {https://doi.org/10.5281/zenodo.23305481}
 }
 ```
 
