@@ -1,23 +1,23 @@
-FROM hadoop_spark_base_image:latest
+FROM hadoop_spark_base_image:4.2.0
 
 USER root
 RUN useradd -m -u 1001 -s /bin/bash jovyan && \
     chmod o+x /home/sparker && \
     python3 -m venv /opt/notebook && \
     /opt/notebook/bin/pip install --no-cache-dir pip==24.3.1
-COPY requirements-notebook.txt /tmp/requirements-notebook.txt
+COPY requirements-notebook.txt requirements-executors.txt /tmp/
 RUN /opt/notebook/bin/pip install --no-cache-dir -r /tmp/requirements-notebook.txt && \
     /opt/notebook/bin/pip check && \
     /opt/notebook/bin/python -m ipykernel install --prefix=/opt/notebook \
-      --name python3 --display-name 'Python 3.10 (Spark 3.5.9)'
-RUN curl -fL https://github.com/coursier/coursier/releases/download/v2.1.7/cs-x86_64-pc-linux.gz \
+      --name python3 --display-name 'Python 3.12 (Spark 4.2.0)'
+RUN curl -fL https://github.com/coursier/coursier/releases/download/v2.1.26/cs-x86_64-pc-linux.gz \
     -o /tmp/cs.gz && gzip -d /tmp/cs.gz && \
     install -m 755 /tmp/cs /usr/local/bin/cs && rm /tmp/cs
 
 # Use PySpark bundled with SPARK_HOME, not a separately resolved pip version.
 ENV PATH=/opt/notebook/bin:${PATH}
-ENV PYTHONPATH=${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-0.10.9.7-src.zip
-# Executors use the system interpreter, available in every image.
+ENV PYTHONPATH=${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-0.10.9.9-src.zip
+# Executors use the shared virtual environment, available in every image.
 ENV PYSPARK_PYTHON=/opt/pyspark/bin/python
 ENV PYSPARK_DRIVER_PYTHON=/opt/notebook/bin/python
 COPY conf-master/ ${HADOOP_CONF_DIR}/
@@ -28,8 +28,10 @@ RUN sed -i 's/\r$//' /usr/local/bin/run-jupyter && chmod +x /usr/local/bin/run-j
 
 USER jovyan
 WORKDIR /home/jovyan/work
-RUN cs launch --fork almond:0.14.1 --scala 2.12.18 -- \
-    --install --id scala_2.12 --display-name 'Scala 2.12 (Spark 3.5.9)' \
+RUN cs launch --fork almond:0.14.5 --scala 2.13.18 -- \
+    --install --id scala_2.13 --display-name 'Scala 2.13 (Spark 4.2.0)' \
     --predef /home/jovyan/.ammonite/predef.sc
+COPY --chown=jovyan:jovyan scripts/configure_scala_kernel.py /tmp/configure_scala_kernel.py
+RUN /opt/notebook/bin/python /tmp/configure_scala_kernel.py
 EXPOSE 8888 4040 4041
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/run-jupyter"]

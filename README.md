@@ -1,4 +1,4 @@
-# Apache Spark 3.5.9 & Hadoop 3.3.6 Docker Cluster — Research & Benchmarking Lab
+# Apache Spark 4.2.0 & Hadoop 3.5.0 Docker Cluster — Research & Benchmarking Lab
 
 A **reproducible reference environment for Apache Spark experimentation and benchmarking**, running a multi-node Spark and Hadoop stack in Docker.
 
@@ -29,13 +29,13 @@ The software stack is intentionally version-pinned to provide a stable and repro
 
 | Component | Version |
 | --- | --- |
-| Apache Spark | **3.5.9**, official `bin-hadoop3` distribution |
-| Apache Hadoop | **3.3.6** — HDFS, YARN and MapReduce |
-| Java | **OpenJDK 11** |
-| Python | **3.10**, with PySpark bundled with Spark |
-| Scala | **2.12.18** |
-| Almond | **0.14.1** |
-| Container OS | **Ubuntu 22.04 LTS** |
+| Apache Spark | **4.2.0**, official `bin-hadoop3` distribution |
+| Apache Hadoop | **3.5.0** — HDFS, YARN and MapReduce |
+| Java | **OpenJDK 17** |
+| Python | **3.12**, with PySpark bundled with Spark |
+| Scala | **2.13.18** |
+| Almond | **0.14.5** |
+| Container OS | **Ubuntu 24.04 LTS** |
 
 ## Architecture
 
@@ -93,7 +93,7 @@ Spark Standalone and YARN coexist on the same workers but use independent schedu
 
 - Docker Desktop running **Linux containers** on Windows, or Docker on Linux.
 - Docker Compose.
-- PowerShell on Windows.
+- PowerShell 7 on Windows for the provided scripts.
 - A local checkout or extracted copy of this repository.
 - Enough memory allocated to Docker: configured service limits total **26 GiB**, plus Nginx and Docker overhead.
 - Free disk space for images, dependency caches and HDFS datasets.
@@ -101,14 +101,18 @@ Spark Standalone and YARN coexist on the same workers but use independent schedu
 
 If you are migrating an existing cluster, read [`MIGRATION.md`](MIGRATION.md) first. Adding persistent volumes does not automatically migrate data from existing containers.
 
+This branch tags its images `4.2.0` and uses the Compose project
+`spark42-cluster`, with separate HDFS volumes. Stop the previous cluster before
+starting this one: both versions use the same host ports and container names.
+
 ### Windows
 
 Run from the repository root:
 
 ```powershell
 .\scripts\build_images.ps1
-docker compose -p spark-cluster up -d --wait --wait-timeout 240
-docker compose -p spark-cluster ps
+docker compose -p spark42-cluster up -d --wait --wait-timeout 240
+docker compose -p spark42-cluster ps
 docker logs spark-cluster-jupyterlab
 ```
 
@@ -126,8 +130,8 @@ Build from the repository root:
 
 ```bash
 make -f scripts/Makefile build
-docker compose -p spark-cluster up -d --wait --wait-timeout 240
-docker compose -p spark-cluster ps
+docker compose -p spark42-cluster up -d --wait --wait-timeout 240
+docker compose -p spark42-cluster ps
 ```
 
 ## Worker hostnames
@@ -175,7 +179,7 @@ Application UIs are available only while a Spark context is active. After comple
 
 ## 📓 Running Spark from Jupyter
 
-The included distributed notebooks use Spark Standalone by default.
+The included notebooks cover Spark Standalone and YARN in both Scala and PySpark, including machine-learning examples.
 
 To create a YARN session, start a fresh kernel and set `.master("yarn")`. Interactive notebooks use **client mode**, with the driver in Jupyter and executors on the worker containers.
 
@@ -246,7 +250,7 @@ spark-submit --class org.apache.spark.examples.SparkPi \
   --num-executors 1 \
   --executor-memory 1g \
   --executor-cores 1 \
-  "$SPARK_HOME"/examples/jars/spark-examples_2.12-*.jar 10
+  "$SPARK_HOME"/examples/jars/spark-examples_2.13-*.jar 10
 ```
 
 For custom workloads, place JARs or scripts in `shared-master/`, which is available inside the master container at:
@@ -312,16 +316,16 @@ Lifecycle commands:
 
 ```bash
 # Stop containers while keeping them available for restart
-docker compose -p spark-cluster stop
+docker compose -p spark42-cluster stop
 
 # Restart existing containers
-docker compose -p spark-cluster start
+docker compose -p spark42-cluster start
 
 # Remove containers and network while preserving named volumes
-docker compose -p spark-cluster down
+docker compose -p spark42-cluster down
 
 # Recreate the cluster using the preserved volumes
-docker compose -p spark-cluster up -d --wait --wait-timeout 240
+docker compose -p spark42-cluster up -d --wait --wait-timeout 240
 ```
 
 > `docker compose down -v` deletes named volumes, including HDFS and HiBench data.
@@ -370,7 +374,8 @@ These constraints are particularly important when comparing execution time, reso
 
 ## ✅ Validated behavior
 
-The Spark **3.5.9** migration has been validated on this repository configuration:
+The Spark **4.2.0** migration was validated locally on **2026-10-11**, using
+OpenJDK 17.0.20.1 and Python 3.12.3. The following checks passed:
 
 - All four project images build successfully.
 - Three HDFS DataNodes register with the NameNode.
@@ -381,11 +386,13 @@ The Spark **3.5.9** migration has been validated on this repository configuratio
 - A distributed pandas UDF executes successfully.
 - An HDFS Parquet write/read round trip completes successfully.
 - SparkPi completes in YARN cluster mode and its result is available in aggregated logs.
-- All seven included notebooks execute successfully.
+- Hadoop MapReduce Pi completes on YARN and appears as succeeded in the MapReduce Job History Server.
+- All nine included notebooks execute successfully.
 - Python and Scala machine-learning examples execute successfully.
-- The three Scala notebooks were rerun against the final Jupyter image.
+- The four Scala notebooks were rerun against the final Jupyter image.
 - Scala Spark applications appear as completed applications in the Spark History Server with their application IDs.
 - HDFS test data and node identities survive container recreation when persistent volumes are preserved.
+- Completed Spark history entries survive recreation; the six main web interfaces and all three worker proxies respond correctly.
 
 Repeat the distributed checks from PowerShell:
 
@@ -393,11 +400,17 @@ Repeat the distributed checks from PowerShell:
 .\scripts\smoke_test.ps1
 ```
 
-Repeat Scala notebook execution and Spark History Server checks:
+Repeat all notebook executions and exact Spark History Server checks:
 
 ```powershell
-docker cp scripts/validate_scala.py spark-cluster-jupyterlab:/tmp/validate_scala.py
-docker exec spark-cluster-jupyterlab /opt/notebook/bin/python /tmp/validate_scala.py
+docker cp scripts/validate_notebooks.py spark-cluster-jupyterlab:/tmp/validate_notebooks.py
+docker exec spark-cluster-jupyterlab /opt/notebook/bin/python /tmp/validate_notebooks.py
+```
+
+Repeat HDFS storage and History Server persistence checks (recreates the cluster without deleting volumes):
+
+```powershell
+.\scripts\validate_persistence.ps1
 ```
 
 See [`MIGRATION.md`](MIGRATION.md) for detailed migration results, persistence checks and safeguards.
@@ -426,9 +439,9 @@ spark-submit
       Spark History Server
 ```
 
-HiBench will be updated and validated separately for **Spark 3.5.9 / Scala 2.12**.
+HiBench will be updated and validated separately for **Spark 4.2.0 / Scala 2.13**.
 
-The current cluster release does **not** claim HiBench compatibility as part of its acceptance scope. Existing Spark 3.3 benchmark JARs and historical results are not assumed to be binary-compatible or directly comparable with Spark 3.5.9 executions.
+The current cluster release does **not** claim HiBench compatibility as part of its acceptance scope. Existing Spark 3.3 benchmark JARs and historical results are not assumed to be binary-compatible or directly comparable with Spark 4.2.0 executions.
 
 Once the HiBench modernization is validated, this repository will provide the pinned infrastructure used to reproduce benchmark executions under a controlled Spark/Hadoop configuration.
 
@@ -449,9 +462,23 @@ It is deliberately kept independent from any particular optimizer or benchmarkin
 
 ## 📖 Citation and academic use
 
-This infrastructure supports the experimental work described in the following doctoral thesis.
+If you use this environment in your research, please cite the **software version used in your experiments**. Machine-readable metadata is available in [CITATION.cff](CITATION.cff), which GitHub uses for its **Cite this repository** feature.
 
-If the repository contributes to your research, please consider citing:
+Version **4.2.0** is being prepared for archival in Zenodo. Its version-specific DOI will be added here and to `CITATION.cff` when available. For reproducibility, use the DOI of the exact release rather than Zenodo's concept DOI, which represents all versions.
+
+Until the Zenodo DOI is available, the software can be cited as:
+
+```bibtex
+@software{garralda2026sparkhadoopcluster,
+  author  = {Mariano Garralda-Barrio},
+  title   = {Apache Spark \& Hadoop Docker Cluster: Research \& Benchmarking Lab},
+  version = {4.2.0},
+  year    = {2026},
+  url     = {https://github.com/mgarralda/hadoop-spark-cluster}
+}
+```
+
+The environment also supports the experimental work described in the following doctoral thesis. Cite it additionally when discussing that research or its methodology:
 
 ```bibtex
 @phdthesis{garralda2026selftuning,
@@ -466,7 +493,7 @@ If the repository contributes to your research, please consider citing:
 
 ## Related repository
 
-- [HiBench modernization](https://github.com/mgarralda/HiBench) — benchmark suite being updated and validated separately against Spark 3.5.9 / Scala 2.12.
+- [HiBench modernization](https://github.com/mgarralda/HiBench) — benchmark suite being updated and validated separately against Spark 4.2.0 / Scala 2.13.
 
 ---
 

@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use this cluster in your research, please cite the software version used in your experiments."
+type: software
+title: "Apache Spark & Hadoop Docker Cluster: Research & Benchmarking Lab"
+authors:
+  - family-names: Garralda-Barrio
+    given-names: Mariano
+    affiliation: Independent Researcher
+version: "4.2.0"
+repository-code: "https://github.com/mgarralda/hadoop-spark-cluster"
+url: "https://github.com/mgarralda/hadoop-spark-cluster"
+# Add the Zenodo DOI for this specific software version when available.
+# Keep the software version DOI distinct from Zenodo's concept DOI.
+keywords:
+  - Apache Spark
+  - Apache Hadoop
+  - Docker
+  - YARN
+  - HDFS
+  - JupyterLab
+  - Scala
+  - PySpark
+  - distributed computing
+  - reproducible experiments
+  - research software
+abstract: >
+  A Docker-based research and experimentation environment for Apache Spark
+  4.2.0 and Apache Hadoop 3.5.0, using OpenJDK 17, Scala 2.13 and Python 3.12.
+  It provides Spark Standalone and YARN execution, HDFS storage, JupyterLab
+  notebooks with Scala/Almond and PySpark kernels, and Spark and MapReduce
+  history services. The default topology consists of one master and three
+  workers running as containers on a single physical host. Resource limits,
+  persistent volumes and validation scripts support controlled experiments.
+  Validation covers distributed execution, nine example notebooks and
+  persistence across container recreation. HiBench compatibility is assessed
+  separately and is outside this release's validation scope.

@@ -29,9 +29,10 @@ locally {
 // =============================================================================
 // Spark Core + ML Libraries
 // =============================================================================
-import $ivy.`org.apache.spark::spark-sql:3.5.9`
-import $ivy.`org.apache.spark::spark-mllib:3.5.9`
-import $ivy.`org.apache.spark::spark-graphx:3.5.9`
+import $ivy.`org.apache.spark::spark-sql:4.2.0`
+import $ivy.`org.apache.spark::spark-mllib:4.2.0`
+import $ivy.`org.apache.spark::spark-graphx:4.2.0`
+import $ivy.`org.apache.spark::spark-yarn:4.2.0`
 
 // =============================================================================
 // Data I/O and Plotting

@@ -45,6 +45,10 @@ if [[ "$ready" != true ]]; then
 fi
 hdfs dfs -mkdir -p /shared/spark-logs /tmp/logs
 hdfs dfs -chmod 1777 /shared/spark-logs /tmp /tmp/logs
+# YARN stages notebook applications in the submitting user's HDFS home.
+hdfs dfs -mkdir -p /user/sparker /user/jovyan
+hdfs dfs -chown jovyan /user/jovyan
+hdfs dfs -chmod 755 /user/sparker /user/jovyan
 "$SPARK_HOME/sbin/start-history-server.sh"
 
 while true; do
