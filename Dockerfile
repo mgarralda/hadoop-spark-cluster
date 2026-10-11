@@ -1,18 +1,17 @@
 # Shared runtime for Hadoop services, Spark executors and notebook drivers.
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    openjdk-11-jdk-headless python3 python3-pip python3-venv python2 \
+    openjdk-17-jdk-headless python3 python3-pip python3-venv \
     ca-certificates curl less vim openssh-server openssh-client rsync sudo \
     wget net-tools iputils-ping bc gettext tini && \
-    ln -s /usr/bin/python2 /usr/bin/python && \
     rm -rf /var/lib/apt/lists/*
 
-# Python 2 is reserved for legacy HiBench scripts; Spark always uses Python 3.
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-ENV HADOOP_VERSION=3.3.6
-ENV SPARK_VERSION=3.5.9
+# Python 3 is shared by notebook drivers and distributed Spark executors.
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV HADOOP_VERSION=3.5.0
+ENV SPARK_VERSION=4.2.0
 ENV HADOOP_HOME=/home/sparker/hadoop-${HADOOP_VERSION}
 ENV HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
 ENV HADOOP_MAPRED_HOME=${HADOOP_HOME}
@@ -26,7 +25,8 @@ ENV PATH=${JAVA_HOME}/bin:${HADOOP_HOME}/bin:${HADOOP_HOME}/sbin:${SPARK_HOME}/b
 
 RUN mkdir -p /var/run/sshd && \
     echo 'PermitRootLogin no' >> /etc/ssh/sshd_config && \
-    useradd -m -s /bin/bash sparker && \
+    if id ubuntu >/dev/null 2>&1; then userdel ubuntu; fi && \
+    useradd -m -u 1000 -s /bin/bash sparker && \
     echo 'sparker:sparker' | chpasswd && \
     echo 'sparker ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/sparker
 

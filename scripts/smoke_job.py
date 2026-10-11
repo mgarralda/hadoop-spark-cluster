@@ -16,15 +16,15 @@ def worker_info(_):
            numpy.__version__, pandas.__version__, pyarrow.__version__)
 
 
-spark = SparkSession.builder.appName("Spark35MigrationSmoke").getOrCreate()
-path = "hdfs://spark-cluster-master:9000/tmp/spark35-smoke-" + uuid.uuid4().hex
+spark = SparkSession.builder.appName("Spark42MigrationSmoke").getOrCreate()
+path = "hdfs://spark-cluster-master:9000/tmp/spark42-smoke-" + uuid.uuid4().hex
 try:
-    assert spark.version == "3.5.9", spark.version
+    assert spark.version == "4.2.0", spark.version
     java = spark.sparkContext._jvm.java.lang.System.getProperty("java.version")
-    assert java.startswith("11."), java
+    assert java.startswith("17."), java
     workers = spark.sparkContext.parallelize(range(12), 12).mapPartitions(worker_info).collect()
-    assert workers and all(info[1].startswith("3.10.") for info in workers), workers
-    assert all(info[2:] == ("1.26.4", "2.2.3", "12.0.1") for info in workers), workers
+    assert workers and all(info[1].startswith("3.12.") for info in workers), workers
+    assert all(info[2:] == ("2.5.4", "2.3.3", "26.0.0") for info in workers), workers
     print("Worker runtimes:", sorted(set(workers)))
 
     @pandas_udf("long")

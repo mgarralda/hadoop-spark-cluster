@@ -1,5 +1,5 @@
 # Get base image
-FROM hadoop_spark_base_image:latest
+FROM hadoop_spark_base_image:4.2.0
 
 # Switch to root to perform system-level tasks
 USER root
