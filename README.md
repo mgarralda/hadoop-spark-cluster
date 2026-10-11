@@ -1,4 +1,4 @@
-# Spark & Hadoop Research Lab
+# Apache Spark 4.2.0 & Hadoop 3.5.0 Docker Cluster — Research & Benchmarking Lab
 
 A **reproducible reference environment for Apache Spark experimentation and benchmarking**, running a multi-node Spark and Hadoop stack in Docker.
 
@@ -462,9 +462,23 @@ It is deliberately kept independent from any particular optimizer or benchmarkin
 
 ## 📖 Citation and academic use
 
-This infrastructure supports the experimental work described in the following doctoral thesis.
+If you use this environment in your research, please cite the **software version used in your experiments**. Machine-readable metadata is available in [CITATION.cff](CITATION.cff), which GitHub uses for its **Cite this repository** feature.
 
-If the repository contributes to your research, please consider citing:
+Version **4.2.0** is being prepared for archival in Zenodo. Its version-specific DOI will be added here and to `CITATION.cff` when available. For reproducibility, use the DOI of the exact release rather than Zenodo's concept DOI, which represents all versions.
+
+Until the Zenodo DOI is available, the software can be cited as:
+
+```bibtex
+@software{garralda2026sparkhadoopcluster,
+  author  = {Mariano Garralda-Barrio},
+  title   = {Apache Spark \& Hadoop Docker Cluster: Research \& Benchmarking Lab},
+  version = {4.2.0},
+  year    = {2026},
+  url     = {https://github.com/mgarralda/hadoop-spark-cluster}
+}
+```
+
+The environment also supports the experimental work described in the following doctoral thesis. Cite it additionally when discussing that research or its methodology:
 
 ```bibtex
 @phdthesis{garralda2026selftuning,
