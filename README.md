@@ -419,7 +419,7 @@ See [`MIGRATION.md`](MIGRATION.md) for detailed migration results, persistence c
 
 ## 🧪 Spark benchmarking with HiBench
 
-This repository is intended to serve as the **reference execution environment** for the modernization of [HiBench](https://github.com/mgarralda/HiBench).
+This repository is intended to serve as the **reference execution environment** for the modernization of [HiBench](https://github.com/mgarralda/HiBench-Next#readme).
 
 The target relationship is:
 
@@ -494,7 +494,7 @@ The environment also supports the experimental work described in the following d
 
 ## Related repository
 
-- [HiBench modernization](https://github.com/mgarralda/HiBench) — benchmark suite being updated and validated separately against Spark 4.2.0 / Scala 2.13.
+- [HiBench modernization](https://github.com/mgarralda/HiBench-Next) — benchmark suite being updated and validated separately against Spark 4.2.0 / Scala 2.13.
 
 ---
 
