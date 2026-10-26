@@ -1,4 +1,4 @@
-# Apache Spark 4.2.0 & Hadoop 3.5.0 Docker Cluster — Research & Benchmarking Lab
+# Apache Spark 4.2.0 & Hadoop 3.5.0 Docker Cluster — Research & Spark HiBench Lab
 
 A **reproducible reference environment for Apache Spark experimentation and benchmarking**, running a multi-node Spark and Hadoop stack in Docker.
 
