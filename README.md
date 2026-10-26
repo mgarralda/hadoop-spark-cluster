@@ -417,7 +417,7 @@ See [`MIGRATION.md`](MIGRATION.md) for detailed migration results, persistence c
 
 > Validation applies to this local research environment. It does not establish production readiness or multi-host performance characteristics.
 
-## 🧪 Spark benchmarking with HiBench
+## 🧪 Spark benchmarking with HiBench Next
 
 This repository is intended to serve as the **reference execution environment** for the modernization of [HiBench](https://github.com/mgarralda/HiBench-Next#readme).
 
